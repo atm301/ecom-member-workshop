@@ -714,6 +714,28 @@
       <a class="btn btn-ghost" href="https://ecom.atmarketing.tw" target="_blank" rel="noopener" data-out="pitch_ecom">開啟電商工具箱</a>
     </div>
 
+    <h3 style="margin:30px 0 10px">📝 你的提案（可編輯 · 可複製 · 線上送出，改了能再送）</h3>
+    <p class="sec-desc" style="margin-bottom:12px">把跑完工具的成果整理進下面這份提案稿，照上方「發表流程」60 秒講得完。內容會自動存在你的瀏覽器；按「送出」會即時上傳到大會系統，被點到時大螢幕就能秀出。改完可以再送一次。</p>
+    <div class="card" style="border-top-color:var(--c-coral)">
+      <div id="pitchWho" class="muted-note" style="margin:0 0 10px">尚未登入編號（送出前請先到「證明」分頁登入你的 A1–A100 編號）</div>
+      <textarea id="pitchText" rows="14" spellcheck="false"
+        style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--c-line);background:#101736;color:var(--c-text);font-size:.95rem;line-height:1.85;font-family:inherit;resize:vertical"
+        placeholder="在這裡寫下你的會員經營企劃…（可先按「套用範本」帶出結構）"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px">
+        <span id="pitchStatus" class="muted-note" style="margin:0">尚未開始</span>
+        <span class="muted-note" style="margin:0">字數：<b id="pitchCount">0</b></span>
+      </div>
+      <div class="hero-btns" style="justify-content:flex-start;margin-top:14px">
+        <button class="btn btn-ghost" id="pitchTemplate" type="button">↻ 套用範本</button>
+        <button class="btn btn-ghost" id="pitchCopy" type="button">📋 複製企劃</button>
+        <button class="btn btn-primary" id="pitchSubmit" type="button">🚀 送出提案</button>
+      </div>
+      <div id="pitchDone" class="callout" style="display:none;border-left-color:var(--c-green);margin:16px 0 0">
+        <b style="color:var(--c-green)">✅ 已送出</b>
+        <p id="pitchDoneMsg" style="margin:6px 0 0;color:var(--c-text)"></p>
+      </div>
+    </div>
+
     <div class="callout" style="margin-top:26px">
       <b>💡 許願池 · 少了什麼工具？</b>
       <p style="margin:8px 0 16px;color:var(--c-text)">用得不順、想要的工具還沒有？把需求寫進許願池，我們收進開發清單 — 已有客戶委託客製（例如為 200 家牙醫開發 SEO 內容產生器）。許願完成 +8 點 🎁</p>
@@ -904,8 +926,8 @@
     LECTURER: '何佳勳（小圭）'
   };
   const STORE = 'lineworkshop_v1';
-  let state = { attendee: null, expLog: {} };
-  try { var _raw = localStorage.getItem(STORE); if(_raw){ var _p = JSON.parse(_raw); state = { attendee: _p.attendee || null, expLog: _p.expLog || {} }; } } catch(e){ state = { attendee:null, expLog:{} }; }
+  let state = { attendee: null, expLog: {}, pitch: null };
+  try { var _raw = localStorage.getItem(STORE); if(_raw){ var _p = JSON.parse(_raw); state = { attendee: _p.attendee || null, expLog: _p.expLog || {}, pitch: _p.pitch || null }; } } catch(e){ state = { attendee:null, expLog:{}, pitch:null }; }
   function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
   function totalExp(){ return Object.keys(state.expLog).reduce(function(s,k){ return s + (+state.expLog[k] || 0); }, 0); }
 
@@ -987,6 +1009,7 @@
       else { cb.disabled = true; cb.classList.remove('ready'); cb.textContent = '🎖️ 還差 ' + (th - t) + ' 點'; cb.onclick = openCert; }
     }
     renderPlan();
+    if(document.getElementById('pitchText')) renderPitch();
     updateTabChecks();
   }
 
@@ -1093,6 +1116,84 @@
   }
   window.switchTab = switchTab;
 
+  /* ===================== 提案編輯器（Supabase 送出）===================== */
+  var SUPA_URL = 'https://dpglkagtzdwiovzbtase.supabase.co';
+  var SUPA_KEY = 'sb_publishable_Tuj9p4DXvO-jEqVcBnumTg_TqZ1NnRu';
+  function pitchTemplate(){
+    var code = (state.attendee && state.attendee.code) ? state.attendee.code : 'A__';
+    var brand = (state.attendee && state.attendee.name) ? state.attendee.name : '';
+    return [
+      '【提案編號】' + code + ' ／ 品牌：' + brand,
+      '【我選用的工具】（例：RFM、會員等級、Persona、棄單挽回、黃金旅程、創意活動）',
+      '',
+      '【關鍵發現】（一句話 + 數據佐證）',
+      '例：90 天未回購的高消費客有 ___ 人，是最該優先挽回的一群。',
+      '',
+      '【我的會員經營企劃】',
+      '1. 分群：',
+      '2. 分眾訊息：VIP／睡眠客／新客／價格敏感客 各說什麼',
+      '3. 黃金 7/30/90 旅程：D0–7 ___ → D7–30 ___ → D30–90 ___',
+      '4. 創意活動：',
+      '',
+      '【下一步（下週就能執行）】',
+      '',
+      '【預期成效】回購率 ___ ／ CAC ___ ／ LTV ___'
+    ].join('\n');
+  }
+  function pitchTA(){ return document.getElementById('pitchText'); }
+  function renderPitch(){
+    var ta = pitchTA(); if(!ta) return;
+    var who = document.getElementById('pitchWho'), st = document.getElementById('pitchStatus');
+    var ct = document.getElementById('pitchCount'), done = document.getElementById('pitchDone'), dmsg = document.getElementById('pitchDoneMsg');
+    if(who) who.textContent = state.attendee
+      ? ('提案人：' + (state.attendee.code ? state.attendee.code + '・' : '') + state.attendee.name)
+      : '尚未登入編號（送出前請先到「證明」分頁登入你的 A1–A100 編號）';
+    if(ct) ct.textContent = (ta.value || '').length;
+    var pit = state.pitch || {};
+    if(done){
+      if(pit.submitted){
+        done.style.display = 'block';
+        if(dmsg) dmsg.textContent = pit.synced
+          ? ('已上傳到大會系統' + (pit.time ? '（' + pit.time + '）' : '') + '，並複製到剪貼簿。改完可以再送一次。')
+          : '已存在本機並複製到剪貼簿；目前未連上大會系統，方便時再按一次送出即可。';
+      } else { done.style.display = 'none'; }
+    }
+    if(st && !pit.submitted) st.textContent = (pit.text ? '已自動儲存' : '尚未開始');
+  }
+  function savePitch(){ var ta = pitchTA(); if(!ta) return; state.pitch = state.pitch || {}; state.pitch.text = ta.value; save(); }
+  function copyPitch(){
+    var ta = pitchTA(); var t = ta ? (ta.value || '') : '';
+    if(!t.trim()){ toast('先寫一點內容再複製'); return; }
+    try { var pr = navigator.clipboard.writeText(t); if(pr && pr.catch) pr.catch(function(){}); } catch(_){}
+    toast('✓ 已複製企劃內容');
+  }
+  async function submitPitch(){
+    if(!state.attendee){ toast('請先登入你的編號'); openReg(); return; }
+    if(!state.attendee.code){ toast('請先補上你的 A1–A100 編號（到「證明」分頁修改）'); openReg(); return; }
+    var ta = pitchTA(); var t = (ta.value || '').trim();
+    if(!t){ toast('提案內容是空的，先寫一點再送出'); return; }
+    state.pitch = state.pitch || {};
+    state.pitch.text = ta.value; state.pitch.submitted = true; state.pitch.synced = false;
+    try { state.pitch.time = new Date().toLocaleString('zh-TW', { hour12:false }); } catch(_){ state.pitch.time = ''; }
+    save();
+    try { var pr = navigator.clipboard.writeText(ta.value); if(pr && pr.catch) pr.catch(function(){}); } catch(_){}
+    var btn = document.getElementById('pitchSubmit'); if(btn){ btn.disabled = true; btn.textContent = '送出中…'; }
+    try {
+      var res = await fetch(SUPA_URL + '/rest/v1/lw_proposals', {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ code: state.attendee.code, name: state.attendee.name, content: ta.value, course: 'ai-line-member-workshop' })
+      });
+      if(res.ok){ state.pitch.synced = true; save(); toast('🚀 提案已送出（已上傳大會系統 + 複製）'); }
+      else { toast('已存本機並複製；上傳未成功（' + res.status + '），稍後再按一次送出'); }
+    } catch(e){ toast('已存本機並複製；目前連不上大會系統，方便時再送一次'); }
+    if(btn){ btn.disabled = false; btn.textContent = '🚀 送出提案'; }
+    awardExp('pitch_submit', 10);
+    renderPitch();
+    track('pitch_submit', { synced: !!(state.pitch && state.pitch.synced) });
+    if(window.fbq) fbq('trackCustom', 'SubmitProposal');
+  }
+
   // ---- init ----
   (function initGame(){
     computeThreshold();
@@ -1109,6 +1210,24 @@
     document.querySelectorAll('.tool-go').forEach(function(btn){
       if(state.expLog['tool_' + btn.getAttribute('data-key')]) setToolDone(btn);
     });
+    var pt = document.getElementById('pitchText');
+    if(pt){
+      if(state.pitch && state.pitch.text) pt.value = state.pitch.text;
+      pt.addEventListener('input', function(){
+        savePitch();
+        var c = document.getElementById('pitchCount'); if(c) c.textContent = pt.value.length;
+        var st = document.getElementById('pitchStatus'); if(st && !(state.pitch && state.pitch.submitted)) st.textContent = '已自動儲存';
+      });
+      document.getElementById('pitchTemplate').addEventListener('click', function(){
+        if(pt.value.trim() && !confirm('用範本覆蓋目前內容？')) return;
+        pt.value = pitchTemplate(); savePitch();
+        var c = document.getElementById('pitchCount'); if(c) c.textContent = pt.value.length;
+        renderPitch();
+      });
+      document.getElementById('pitchCopy').addEventListener('click', copyPitch);
+      document.getElementById('pitchSubmit').addEventListener('click', submitPitch);
+      renderPitch();
+    }
     renderHud();
     if(!state.attendee){ setTimeout(openReg, 700); }
   })();
