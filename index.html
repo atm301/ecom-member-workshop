@@ -511,25 +511,25 @@
         <p>填品牌基本資料 → 勾顧客觀察 → AI 生成 3 版具體 Persona（名字、年齡、職業、痛點），讓你對著一張臉寫文案。</p>
         <button class="tool-go" data-key="persona" data-url="https://ecom.atmarketing.tw/persona-builder" onclick="markTool(this)">開啟 Persona 生成器</button>
       </div>
-      <!-- 4 棄單挽回 -->
+      <!-- 4 創意活動 -->
       <div class="card tool-card">
-        <h3><span class="num">04</span>棄單挽回話術</h3>
-        <p>輸入產品與語氣，AI 產出 1hr / 24hr / 72hr 三段時間軸、LINE / Email / SMS 三管道挽回訊息，含 A/B 文案比較。</p>
-        <button class="tool-go" data-key="cart" data-url="https://ecom.atmarketing.tw/cart-rescue" onclick="markTool(this)">開啟 棄單挽回</button>
-      </div>
-      <!-- 5 黃金會員旅程 -->
-      <div class="card tool-card">
-        <h3><span class="num">05</span>黃金 7-30 天會員旅程</h3>
-        <p>首購後的黃金 7/30/90 天，AI 一鍵產出 5 階段觸發藍圖（歡迎啟用 → 二購誘因 → 關係深化 → 升階／挽留），把「第一次買」變成「習慣性買」。</p>
-        <button class="tool-go" data-key="golden" data-url="https://ecom.atmarketing.tw/golden-journey" onclick="markTool(this)">開啟 黃金會員旅程</button>
-        <div class="tool-alt">搭配：<a href="https://ecom.atmarketing.tw/crm/journey" target="_blank" rel="noopener" data-out="t_journey">會員旅程地圖</a> · <a href="https://ecom.atmarketing.tw/crm/repurchase" target="_blank" rel="noopener" data-out="t_repurchase">回購週期預測器</a></div>
-      </div>
-      <!-- 6 創意活動 -->
-      <div class="card tool-card">
-        <h3><span class="num">06</span>創意活動</h3>
+        <h3><span class="num">04</span>創意活動</h3>
         <p>用峰值體驗（Peak-End）設計讓人記得住的活動與儀式感 — 節慶檔期、VIP 抽獎、會員日，產出活動企劃與多管道文案。</p>
         <button class="tool-go" data-key="creative" data-url="https://ecom.atmarketing.tw/peak-experience" onclick="markTool(this)">開啟 創意活動（峰值體驗）</button>
         <div class="tool-alt">節慶檔期企劃：<a href="https://ecom.atmarketing.tw/holiday-campaign" target="_blank" rel="noopener" data-out="t_holiday">節慶行銷企劃產生器</a></div>
+      </div>
+      <!-- 5 棄單挽回 -->
+      <div class="card tool-card">
+        <h3><span class="num">05</span>棄單挽回話術</h3>
+        <p>輸入產品與語氣，AI 產出 1hr / 24hr / 72hr 三段時間軸、LINE / Email / SMS 三管道挽回訊息，含 A/B 文案比較。</p>
+        <button class="tool-go" data-key="cart" data-url="https://ecom.atmarketing.tw/cart-rescue" onclick="markTool(this)">開啟 棄單挽回</button>
+      </div>
+      <!-- 6 黃金會員旅程 -->
+      <div class="card tool-card">
+        <h3><span class="num">06</span>黃金 7-30 天會員旅程</h3>
+        <p>首購後的黃金 7/30/90 天，AI 一鍵產出 5 階段觸發藍圖（歡迎啟用 → 二購誘因 → 關係深化 → 升階／挽留），把「第一次買」變成「習慣性買」。</p>
+        <button class="tool-go" data-key="golden" data-url="https://ecom.atmarketing.tw/golden-journey" onclick="markTool(this)">開啟 黃金會員旅程</button>
+        <div class="tool-alt">搭配：<a href="https://ecom.atmarketing.tw/crm/journey" target="_blank" rel="noopener" data-out="t_journey">會員旅程地圖</a> · <a href="https://ecom.atmarketing.tw/crm/repurchase" target="_blank" rel="noopener" data-out="t_repurchase">回購週期預測器</a></div>
       </div>
     </div>
 
@@ -740,7 +740,7 @@
           <li><b>數據思維</b> — 用 RFM 或核心指標佐證決策</li>
           <li><b>創意亮點</b> — 有讓人眼睛一亮的巧思與差異化</li>
         </ul>
-        <div class="callout" style="margin-top:14px"><b>🎁 前五名 · 小獎勵：</b>工具方案 + 限量周邊好禮。</div>
+        <div class="callout" style="margin-top:14px"><b>🎁 前五名 · 小獎勵：</b>限量周邊好禮。</div>
       </div>
     </div>
 
@@ -770,6 +770,7 @@
         <button class="btn btn-ghost" id="pitchTemplate" type="button">↻ 套用範本</button>
         <button class="btn btn-ghost" id="pitchCopy" type="button">📋 複製企劃</button>
         <button class="btn btn-primary" id="pitchSubmit" type="button">🚀 送出提案</button>
+        <button class="btn btn-ghost" id="pitchStage" type="button">🙋 我想上台報告</button>
       </div>
       <div id="pitchDone" class="callout" style="display:none;border-left-color:var(--c-green);margin:16px 0 0">
         <b style="color:var(--c-green)">✅ 已送出</b>
@@ -1033,9 +1034,9 @@
     ['tool_rfm', 'RFM 客戶分析', '分出 8 大客群'],
     ['tool_member', '會員等級設計', '銀卡 / 金卡門檻'],
     ['tool_persona', '會員輪廓 Persona', '3 版代表型顧客'],
+    ['tool_creative', '創意活動', '峰值體驗設計'],
     ['tool_cart', '棄單挽回話術', '三段時間軸'],
-    ['tool_golden', '黃金 7-30 天會員旅程', '5 階段觸發藍圖'],
-    ['tool_creative', '創意活動', '峰值體驗設計']
+    ['tool_golden', '黃金 7-30 天會員旅程', '5 階段觸發藍圖']
   ];
   function renderPlan(){
     var box = document.getElementById('planChecklist');
@@ -1210,12 +1211,19 @@
     if(done){
       if(pit.submitted){
         done.style.display = 'block';
-        if(dmsg) dmsg.textContent = pit.synced
+        var msg = pit.synced
           ? ('已上傳到大會系統' + (pit.time ? '（' + pit.time + '）' : '') + '，並複製到剪貼簿。改完可以再送一次。')
           : '已存在本機並複製到剪貼簿；目前未連上大會系統，方便時再按一次送出即可。';
+        if(pit.wantsStage) msg += '　🙋 已舉手想上台' + (pit.stageTime ? '（' + pit.stageTime + '）' : '') + '，講師端會看到。';
+        if(dmsg) dmsg.textContent = msg;
       } else { done.style.display = 'none'; }
     }
     if(st && !pit.submitted) st.textContent = (pit.text ? '已自動儲存' : '尚未開始');
+    var sb = document.getElementById('pitchStage');
+    if(sb){
+      if(pit.wantsStage){ sb.textContent = '✋ 已舉手想上台（按可取消）'; sb.classList.remove('btn-ghost'); sb.classList.add('btn-primary'); }
+      else { sb.textContent = '🙋 我想上台報告'; sb.classList.add('btn-ghost'); sb.classList.remove('btn-primary'); }
+    }
   }
   function savePitch(){ var ta = pitchTA(); if(!ta) return; state.pitch = state.pitch || {}; state.pitch.text = ta.value; save(); }
   function copyPitch(){
@@ -1239,7 +1247,7 @@
       var res = await fetch(SUPA_URL + '/rest/v1/lw_proposals', {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ code: state.attendee.code, name: state.attendee.name, content: ta.value, course: 'ai-line-member-workshop' })
+        body: JSON.stringify({ code: state.attendee.code, name: state.attendee.name, content: ta.value, course: 'ai-line-member-workshop', wants_stage: !!(state.pitch && state.pitch.wantsStage), wants_stage_at: (state.pitch && state.pitch.wantsStage && state.pitch.stageISO) ? state.pitch.stageISO : null })
       });
       if(res.ok){ state.pitch.synced = true; save(); toast('🚀 提案已送出（已上傳大會系統 + 複製）'); }
       else { toast('已存本機並複製；上傳未成功（' + res.status + '），稍後再按一次送出'); }
@@ -1249,6 +1257,36 @@
     renderPitch();
     track('pitch_submit', { synced: !!(state.pitch && state.pitch.synced) });
     if(window.fbq) fbq('trackCustom', 'SubmitProposal');
+  }
+
+  // 🙋 我想上台報告（記錄按下時間，講師端後台顯示）
+  async function toggleStage(){
+    if(!state.attendee || !state.attendee.code){ toast('請先登入你的 A1–A100 編號'); openReg(); return; }
+    var ta = pitchTA(); var t = (ta.value || '').trim();
+    if(!t){ toast('先寫一點提案內容，再舉手上台'); return; }
+    state.pitch = state.pitch || {};
+    var willWant = !state.pitch.wantsStage;
+    state.pitch.text = ta.value; state.pitch.submitted = true; state.pitch.wantsStage = willWant;
+    if(willWant){
+      var now = new Date();
+      try { state.pitch.stageTime = now.toLocaleString('zh-TW', { hour12:false }); } catch(_){ state.pitch.stageTime = ''; }
+      state.pitch.stageISO = now.toISOString();
+    } else { state.pitch.stageTime = ''; state.pitch.stageISO = null; }
+    save();
+    var sb = document.getElementById('pitchStage'); if(sb){ sb.disabled = true; }
+    try {
+      var res = await fetch(SUPA_URL + '/rest/v1/lw_proposals', {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ code: state.attendee.code, name: state.attendee.name, content: ta.value, course: 'ai-line-member-workshop', wants_stage: willWant, wants_stage_at: willWant ? state.pitch.stageISO : null })
+      });
+      if(res.ok){ state.pitch.synced = true; save(); toast(willWant ? '🙋 已舉手！講師端會看到你想上台' : '已取消上台舉手'); }
+      else { state.pitch.wantsStage = !willWant; save(); toast('連線未成功（' + res.status + '），稍後再試'); }
+    } catch(e){ state.pitch.wantsStage = !willWant; save(); toast('目前連不上大會系統，稍後再舉手'); }
+    if(sb){ sb.disabled = false; }
+    renderPitch();
+    track('want_stage', { want: willWant });
+    if(window.fbq) fbq('trackCustom', 'WantStage');
   }
 
   // ---- init ----
@@ -1283,6 +1321,7 @@
       });
       document.getElementById('pitchCopy').addEventListener('click', copyPitch);
       document.getElementById('pitchSubmit').addEventListener('click', submitPitch);
+      var sgb = document.getElementById('pitchStage'); if(sgb) sgb.addEventListener('click', toggleStage);
       renderPitch();
     }
     renderHud();

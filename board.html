@@ -60,6 +60,8 @@
   .pcard .meta{color:var(--c-mute);font-size:.76rem;}
   .pcard.done{border-top-color:var(--c-mute);opacity:.72;}
   .pcard.done::after{content:'已發表';position:absolute;top:12px;right:12px;font-size:.66rem;font-weight:900;color:#06250f;background:var(--c-mute);padding:2px 8px;border-radius:999px;}
+  .pcard.want{border-top-color:var(--c-coral);box-shadow:0 0 0 2px rgba(245,180,0,.6) inset;}
+  .pcard .wantbadge{display:inline-block;margin-bottom:6px;font-size:.64rem;font-weight:900;color:#3a2800;background:var(--c-coral);padding:2px 8px;border-radius:999px;}
   .empty{text-align:center;color:var(--c-mute);padding:60px 20px;}
   .empty .big{font-size:1.3rem;color:var(--c-text);font-weight:800;margin-bottom:8px;}
 
@@ -100,6 +102,7 @@
     <span class="ttl">📺 講師展示台 <small>AI × LINE 會員經營</small></span>
     <div class="stat">
       <span class="chip">提案 <b id="cTotal">0</b></span>
+      <span class="chip" style="border-color:var(--c-coral)">🙋 想上台 <b id="cWant" style="color:var(--c-coral)">0</b></span>
       <span class="chip">已發表 <b id="cDone">0</b></span>
       <span class="chip" id="cUpd" title="最後更新">—</span>
       <button class="btn btn-g" id="btnReload" title="重新整理">↻ 整理</button>
@@ -110,7 +113,7 @@
 </header>
 
 <div class="wrap">
-  <p class="hint">點任一張卡放大展示；<kbd>R</kbd> 隨機抽 · <kbd>←</kbd>/<kbd>→</kbd> 上下位 · <kbd>D</kbd> 標記已發表 · <kbd>Esc</kbd> 返回。每 15 秒自動同步新提案。</p>
+  <p class="hint">🙋 <b style="color:var(--c-coral)">想上台者會變色（金框）並置頂</b>，依舉手時間先後排序。點任一張卡放大展示；<kbd>R</kbd> 隨機抽 · <kbd>←</kbd>/<kbd>→</kbd> 上下位 · <kbd>D</kbd> 標記已發表 · <kbd>Esc</kbd> 返回。每 15 秒自動同步。</p>
   <div id="grid" class="grid"></div>
   <div id="empty" class="empty" style="display:none">
     <div class="big">還沒有人送出提案</div>
@@ -182,11 +185,16 @@
 
   async function fetchRows(){
     var url = SUPA_URL + '/rest/v1/lw_proposals?course=eq.' + encodeURIComponent(COURSE) +
-              '&select=code,name,content,updated_at&order=updated_at.desc';
+              '&select=code,name,content,updated_at,wants_stage,wants_stage_at&order=updated_at.desc';
     var res = await fetch(url, { headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY } });
     if(!res.ok) throw new Error('HTTP '+res.status);
     var data = await res.json();
-    data.sort(function(a,b){ return codeNum(a.code)-codeNum(b.code) || String(a.code).localeCompare(String(b.code)); });
+    data.sort(function(a,b){
+      var aw=a.wants_stage?0:1, bw=b.wants_stage?0:1;                                   // 想上台優先
+      if(aw!==bw) return aw-bw;
+      if(a.wants_stage && b.wants_stage) return new Date(a.wants_stage_at||0)-new Date(b.wants_stage_at||0); // 先舉手先排
+      return codeNum(a.code)-codeNum(b.code) || String(a.code).localeCompare(String(b.code));
+    });
     return data;
   }
 
@@ -194,15 +202,19 @@
     var grid=document.getElementById('grid'), empty=document.getElementById('empty');
     document.getElementById('cTotal').textContent = rows.length;
     document.getElementById('cDone').textContent = rows.filter(function(r){return doneSet.has(r.code);}).length;
+    var cw=document.getElementById('cWant'); if(cw) cw.textContent = rows.filter(function(r){return r.wants_stage;}).length;
     if(!rows.length){ grid.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
     grid.innerHTML = rows.map(function(r){
       var done = doneSet.has(r.code);
+      var want = !!r.wants_stage;
       var chars = (r.content||'').length;
-      return '<div class="pcard'+(done?' done':'')+'" data-code="'+encA(r.code)+'">'+
+      var meta = want ? ('🙋 想上台 ' + fmtTime(r.wants_stage_at)) : (chars + ' 字 · ' + fmtTime(r.updated_at));
+      return '<div class="pcard'+(done?' done':'')+(want?' want':'')+'" data-code="'+encA(r.code)+'">'+
+               (want?'<span class="wantbadge">🙋 想上台</span>':'')+
                '<div class="code">'+esc(r.code)+'</div>'+
                '<div class="nm">'+esc(r.name||'（未填品牌）')+'</div>'+
-               '<div class="meta">'+chars+' 字 · '+fmtTime(r.updated_at)+'</div>'+
+               '<div class="meta">'+meta+'</div>'+
              '</div>';
     }).join('');
   }
@@ -217,7 +229,7 @@
     var r = rows[i];
     document.getElementById('sCode').textContent = r.code;
     document.getElementById('sName').textContent = r.name || '（未填品牌）';
-    document.getElementById('sMeta').textContent = '送出：' + fmtTime(r.updated_at) + (doneSet.has(r.code)?' · ✓ 已發表':'');
+    document.getElementById('sMeta').textContent = '送出：' + fmtTime(r.updated_at) + (r.wants_stage?' · 🙋 想上台 '+fmtTime(r.wants_stage_at):'') + (doneSet.has(r.code)?' · ✓ 已發表':'');
     document.getElementById('sContent').textContent = r.content || '';
     document.getElementById('stage').classList.add('show');
     document.getElementById('sContent').scrollTop = 0;
@@ -225,7 +237,7 @@
   }
   function closeStage(){ document.getElementById('stage').classList.remove('show'); curIdx=-1; }
   function step(d){ if(!rows.length) return; if(curIdx<0){ openStage(rows[0].code); return; } var n=(curIdx+d+rows.length)%rows.length; openStage(rows[n].code); }
-  function markDone(){ if(curIdx<0) return; var c=rows[curIdx].code; if(doneSet.has(c)){ doneSet.delete(c); toast('已取消「'+c+'」發表標記'); } else { doneSet.add(c); toast('✓ 已標記「'+c+'」發表'); } saveDone(); render(); document.getElementById('sMeta').textContent='送出：'+fmtTime(rows[curIdx].updated_at)+(doneSet.has(c)?' · ✓ 已發表':''); }
+  function markDone(){ if(curIdx<0) return; var c=rows[curIdx].code; if(doneSet.has(c)){ doneSet.delete(c); toast('已取消「'+c+'」發表標記'); } else { doneSet.add(c); toast('✓ 已標記「'+c+'」發表'); } saveDone(); render(); var rr=rows[curIdx]; document.getElementById('sMeta').textContent='送出：'+fmtTime(rr.updated_at)+(rr.wants_stage?' · 🙋 想上台 '+fmtTime(rr.wants_stage_at):'')+(doneSet.has(c)?' · ✓ 已發表':''); }
 
   // 隨機抽：優先未發表，揭曉動畫後開展示
   function randomPick(){
