@@ -65,6 +65,8 @@
     --c-bg:     #141b34;
     --c-bg-2:   #1c2446;
     --c-bg-3:   #29335f;
+    --c-sunken: #101736;
+    --c-codetext:#dde6ff;
     --c-teal:   #19d36b;   /* LINE 綠主色 */
     --c-teal-d: #06c755;
     --c-green:  #4ade80;
@@ -186,14 +188,14 @@
   .tool-alt { margin-top:9px; font-size:.82rem; color:var(--c-mute); }
 
   /* ===== Prompt box ===== */
-  .prompt-box { background:#101736; border:1px solid var(--c-line); border-left:4px solid var(--c-coral); border-radius:12px; overflow:hidden; margin:14px 0; }
+  .prompt-box { background:var(--c-sunken); border:1px solid var(--c-line); border-left:4px solid var(--c-coral); border-radius:12px; overflow:hidden; margin:14px 0; }
   .prompt-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; background:var(--c-bg-2); border-bottom:1px solid var(--c-line); }
   .prompt-head .name { font-weight:900; font-size:.95rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .prompt-head .name .tg { font-size:.7rem; font-weight:800; padding:2px 8px; border-radius:6px; background:var(--c-bg-3); color:var(--c-teal); }
   .copy-btn { background:var(--c-teal); color:#06201d; font-weight:900; border:0; padding:7px 14px; border-radius:8px; font-size:.85rem; white-space:nowrap; }
   .copy-btn:hover { background:var(--c-yellow); }
   .copy-btn.done { background:var(--c-green); }
-  .prompt-box pre { margin:0; padding:16px; white-space:pre-wrap; word-break:break-word; font-family:'Noto Sans TC',monospace; font-size:.92rem; line-height:1.85; color:#dde6ff; }
+  .prompt-box pre { margin:0; padding:16px; white-space:pre-wrap; word-break:break-word; font-family:'Noto Sans TC',monospace; font-size:.92rem; line-height:1.85; color:var(--c-codetext); }
 
   /* ===== Agenda timeline ===== */
   .timeline { display:grid; gap:10px; }
@@ -296,7 +298,7 @@
   .modal h2 { margin:0 0 6px; }
   .modal .sub { color:var(--c-mute); margin:0 0 18px; font-size:.92rem; }
   .modal label { display:block; font-weight:800; margin:0 0 6px; font-size:.9rem; }
-  .modal input { width:100%; padding:13px 14px; border-radius:10px; border:1px solid var(--c-line); background:#101736; color:var(--c-text); font-size:1rem; font-family:inherit; margin-bottom:16px; }
+  .modal input { width:100%; padding:13px 14px; border-radius:10px; border:1px solid var(--c-line); background:var(--c-sunken); color:var(--c-text); font-size:1rem; font-family:inherit; margin-bottom:16px; }
   .modal input:focus { outline:2px solid var(--c-teal); border-color:var(--c-teal); }
   .modal .err { color:var(--c-coral); font-size:.85rem; margin:-10px 0 12px; display:none; }
   .modal .skip { display:block; text-align:center; margin-top:14px; color:var(--c-mute); font-size:.82rem; }
@@ -305,7 +307,7 @@
   .hud.show { display:flex; }
   .hud .who { font-weight:900; font-size:.8rem; white-space:nowrap; max-width:110px; overflow:hidden; text-overflow:ellipsis; text-align:right; }
   .hud .who small { display:block; color:var(--c-mute); font-weight:700; font-size:.6rem; }
-  .hud .bar { width:72px; height:9px; background:#101736; border-radius:999px; overflow:hidden; border:1px solid var(--c-line); flex:none; }
+  .hud .bar { width:72px; height:9px; background:var(--c-sunken); border-radius:999px; overflow:hidden; border:1px solid var(--c-line); flex:none; }
   .hud .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--c-teal),var(--c-green)); width:0; transition:width .4s; }
   .hud .pts { font-family:'Press Start 2P',monospace; font-size:.54rem; color:var(--c-yellow); white-space:nowrap; }
   .hud .medal { font-size:1.1rem; line-height:1; }
@@ -335,8 +337,47 @@
   .fzctl .lab { font-size:11px; color:var(--c-mute); font-weight:800; margin:0 2px; }
   .fzctl button { background:var(--c-bg-3); color:var(--c-text); border:1px solid var(--c-line); border-radius:8px; font-weight:900; line-height:1; padding:5px 9px; cursor:pointer; }
   .fzctl button.on { background:var(--c-teal); color:#06201d; border-color:var(--c-teal); }
-  .fzctl button:nth-of-type(1){ font-size:12px; } .fzctl button:nth-of-type(2){ font-size:15px; } .fzctl button:nth-of-type(3){ font-size:18px; }
+  .fzctl button[data-fz="16"]{ font-size:12px; } .fzctl button[data-fz="18"]{ font-size:15px; } .fzctl button[data-fz="21"]{ font-size:18px; }
+  .fzctl #themeToggle{ font-size:16px; line-height:1; }
+  .fzctl .sep { width:1px; align-self:stretch; background:var(--c-line); margin:2px 1px; }
   @media (max-width:560px){ .fzctl{ left:6px; padding:4px 6px; gap:3px; } .fzctl .lab{ display:none; } }
+
+  /* ===== 白底主題（可切換，預設深色）===== */
+  :root[data-theme="light"]{
+    --c-bg:#ffffff; --c-bg-2:#f5f8fc; --c-bg-3:#e9eef7;
+    --c-text:#16223f; --c-mute:#566784; --c-line:#d7deec;
+    --c-sunken:#eef2f8; --c-codetext:#1b2949;
+  }
+  :root[data-theme="light"] nav.topnav{ background:rgba(255,255,255,.93); }
+  :root[data-theme="light"] .tabs{ background:rgba(255,255,255,.97); }
+  :root[data-theme="light"] .fzctl{ background:rgba(255,255,255,.97); }
+  :root[data-theme="light"] .overlay{ background:rgba(20,27,52,.5); }
+  :root[data-theme="light"] body::before{ background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(20,33,63,.02) 3px 4px); }
+  :root[data-theme="light"] .prompt-box{ background:var(--c-sunken); }
+  :root[data-theme="light"] .hero h1{ text-shadow:1px 1px 0 rgba(6,199,85,.30); }
+  /* 文字型 accent 在白底改深色，確保對比（填色/邊框維持鮮明品牌色）*/
+  :root[data-theme="light"] a,
+  :root[data-theme="light"] .sec-title .em,
+  :root[data-theme="light"] .pill,
+  :root[data-theme="light"] .prompt-head .name .tg,
+  :root[data-theme="light"] .badge,
+  :root[data-theme="light"] .hero .quote,
+  :root[data-theme="light"] .fbar .pct,
+  :root[data-theme="light"] .price .pn{ color:#0a7d3c; }
+  :root[data-theme="light"] .badge.free{ color:#0a8f43; }
+  :root[data-theme="light"] .sec-tag,
+  :root[data-theme="light"] .hero-eyebrow,
+  :root[data-theme="light"] .callout b,
+  :root[data-theme="light"] .badge.paid{ color:#9a6b00; }
+  :root[data-theme="light"] .metric h3,
+  :root[data-theme="light"] .step .n,
+  :root[data-theme="light"] .tl-row .t,
+  :root[data-theme="light"] .tool-card .num,
+  :root[data-theme="light"] .faq summary .q,
+  :root[data-theme="light"] .price .pp small,
+  :root[data-theme="light"] .fbar:last-child .pct{ color:#b06f00; }
+  :root[data-theme="light"] .tool-link{ color:#125c97; }
+  :root[data-theme="light"] .xp-pop{ color:#0a9d4a; }
 </style>
 </head>
 <body>
@@ -719,7 +760,7 @@
     <div class="card" style="border-top-color:var(--c-coral)">
       <div id="pitchWho" class="muted-note" style="margin:0 0 10px">尚未登入編號（送出前請先到「證明」分頁登入你的 A1–A100 編號）</div>
       <textarea id="pitchText" rows="14" spellcheck="false"
-        style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--c-line);background:#101736;color:var(--c-text);font-size:.95rem;line-height:1.85;font-family:inherit;resize:vertical"
+        style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--c-line);background:var(--c-sunken);color:var(--c-text);font-size:.95rem;line-height:1.85;font-family:inherit;resize:vertical"
         placeholder="在這裡寫下你的會員經營企劃…（可先按「套用範本」帶出結構）"></textarea>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px">
         <span id="pitchStatus" class="muted-note" style="margin:0">尚未開始</span>
@@ -756,7 +797,7 @@
     <div class="card" style="border-top-color:var(--c-coral)">
       <h3 id="meName">👤 訪客</h3>
       <p id="meProg" style="margin:6px 0 14px">完成度 0% ／ 達 70% 可領證明</p>
-      <div style="width:100%;height:14px;background:#101736;border-radius:999px;overflow:hidden;border:1px solid var(--c-line)"><i id="meBar" style="display:block;height:100%;width:0;background:linear-gradient(90deg,var(--c-teal),var(--c-green));transition:width .4s"></i></div>
+      <div style="width:100%;height:14px;background:var(--c-sunken);border-radius:999px;overflow:hidden;border:1px solid var(--c-line)"><i id="meBar" style="display:block;height:100%;width:0;background:linear-gradient(90deg,var(--c-teal),var(--c-green));transition:width .4s"></i></div>
       <div class="hero-btns" style="justify-content:flex-start;margin-top:18px">
         <button class="btn btn-primary" id="certBtn" disabled>🎖️ 領完課證明</button>
         <button class="btn btn-ghost" id="meReg">✏️ 修改編號 / 名字</button>
@@ -805,8 +846,10 @@
   <button class="tab-btn" role="tab" data-tab="me" aria-selected="false"><span class="ti">🎖️</span><span class="tl">證明</span><span class="tck">✓</span></button>
 </nav>
 
-<!-- ===== 字級放大 ===== -->
-<div class="fzctl" role="group" aria-label="字級調整">
+<!-- ===== 顯示設定（主題 + 字級）===== -->
+<div class="fzctl" role="group" aria-label="顯示設定">
+  <button id="themeToggle" type="button" onclick="toggleTheme()" title="切換深色 / 白底" aria-label="切換深色或白底主題">🌙</button>
+  <span class="sep" aria-hidden="true"></span>
   <span class="lab">字級</span>
   <button data-fz="16" onclick="setFz(16)" aria-label="標準字級" title="標準">A</button>
   <button data-fz="18" onclick="setFz(18)" aria-label="放大字級" title="放大">A</button>
@@ -917,6 +960,20 @@
   }
   window.setFz = setFz;
   (function(){ var px = 16; try { px = parseInt(localStorage.getItem('lw_fz'), 10) || 16; } catch(e){} setFz(px); })();
+
+  /* ===== 主題切換（深色 / 白底）===== */
+  function setTheme(t){
+    if(t !== 'light') t = 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('lw_theme', t); } catch(e){}
+    var b = document.getElementById('themeToggle');
+    if(b){ b.textContent = (t === 'light' ? '☀️' : '🌙'); b.title = (t === 'light' ? '切換深色' : '切換白底'); }
+    var m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', t === 'light' ? '#ffffff' : '#141b34');
+    if(window.track) track('theme_switch', { theme: t });
+  }
+  function toggleTheme(){ setTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
+  window.setTheme = setTheme; window.toggleTheme = toggleTheme;
+  (function(){ var t = 'dark'; try { t = localStorage.getItem('lw_theme') || 'dark'; } catch(e){} setTheme(t); })();
 
   /* ===================== 學習點數 × 完課證明 ===================== */
   const CONFIG = {
