@@ -1213,7 +1213,7 @@
         done.style.display = 'block';
         var msg = pit.synced
           ? ('已上傳到大會系統' + (pit.time ? '（' + pit.time + '）' : '') + '，並複製到剪貼簿。改完可以再送一次。')
-          : '已存在本機並複製到剪貼簿；目前未連上大會系統，方便時再按一次送出即可。';
+          : '已存在本機並複製到剪貼簿；大會系統較忙，背景自動重送中…（也可先貼到系統）。';
         if(pit.wantsStage) msg += '　🙋 已舉手想上台' + (pit.stageTime ? '（' + pit.stageTime + '）' : '') + '，講師端會看到。';
         if(dmsg) dmsg.textContent = msg;
       } else { done.style.display = 'none'; }
@@ -1232,30 +1232,51 @@
     try { var pr = navigator.clipboard.writeText(t); if(pr && pr.catch) pr.catch(function(){}); } catch(_){}
     toast('✓ 已複製企劃內容');
   }
+  // 帶 timeout 的 Supabase 寫入（大會系統慢時不讓按鈕一直卡住）
+  function pitchPayload(){
+    return {
+      code: state.attendee.code, name: state.attendee.name,
+      content: (state.pitch && state.pitch.text) || '',
+      course: 'ai-line-member-workshop',
+      wants_stage: !!(state.pitch && state.pitch.wantsStage),
+      wants_stage_at: (state.pitch && state.pitch.wantsStage && state.pitch.stageISO) ? state.pitch.stageISO : null
+    };
+  }
+  function supaWrite(ms){
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function(){ try{ ctrl.abort(); }catch(_){} }, ms || 9000) : 0;
+    return fetch(SUPA_URL + '/rest/v1/lw_proposals', {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(pitchPayload()),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(r){ if(to) clearTimeout(to); return r; }, function(e){ if(to) clearTimeout(to); throw e; });
+  }
+  // 嘗試同步；失敗標記 needsSync，背景會自動重送
+  async function syncPitch(ms){
+    if(!state.attendee || !state.attendee.code || !(state.pitch && state.pitch.text)) return false;
+    try { var res = await supaWrite(ms); if(res.ok){ state.pitch.synced = true; state.pitch.needsSync = false; save(); renderPitch(); return true; } } catch(e){}
+    state.pitch.synced = false; state.pitch.needsSync = true; save(); renderPitch();
+    return false;
+  }
+
   async function submitPitch(){
     if(!state.attendee){ toast('請先登入你的編號'); openReg(); return; }
     if(!state.attendee.code){ toast('請先補上你的 A1–A100 編號（到「證明」分頁修改）'); openReg(); return; }
     var ta = pitchTA(); var t = (ta.value || '').trim();
     if(!t){ toast('提案內容是空的，先寫一點再送出'); return; }
     state.pitch = state.pitch || {};
-    state.pitch.text = ta.value; state.pitch.submitted = true; state.pitch.synced = false;
+    state.pitch.text = ta.value; state.pitch.submitted = true; state.pitch.needsSync = true; state.pitch.synced = false;
     try { state.pitch.time = new Date().toLocaleString('zh-TW', { hour12:false }); } catch(_){ state.pitch.time = ''; }
     save();
     try { var pr = navigator.clipboard.writeText(ta.value); if(pr && pr.catch) pr.catch(function(){}); } catch(_){}
     var btn = document.getElementById('pitchSubmit'); if(btn){ btn.disabled = true; btn.textContent = '送出中…'; }
-    try {
-      var res = await fetch(SUPA_URL + '/rest/v1/lw_proposals', {
-        method: 'POST',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ code: state.attendee.code, name: state.attendee.name, content: ta.value, course: 'ai-line-member-workshop', wants_stage: !!(state.pitch && state.pitch.wantsStage), wants_stage_at: (state.pitch && state.pitch.wantsStage && state.pitch.stageISO) ? state.pitch.stageISO : null })
-      });
-      if(res.ok){ state.pitch.synced = true; save(); toast('🚀 提案已送出（已上傳大會系統 + 複製）'); }
-      else { toast('已存本機並複製；上傳未成功（' + res.status + '），稍後再按一次送出'); }
-    } catch(e){ toast('已存本機並複製；目前連不上大會系統，方便時再送一次'); }
+    var ok = await syncPitch(9000);
     if(btn){ btn.disabled = false; btn.textContent = '🚀 送出提案'; }
+    toast(ok ? '🚀 提案已送出（已上傳大會系統 + 複製）' : '✅ 已存檔並複製！大會系統較忙，會在背景自動重送（也可先貼到系統）');
     awardExp('pitch_submit', 10);
     renderPitch();
-    track('pitch_submit', { synced: !!(state.pitch && state.pitch.synced) });
+    track('pitch_submit', { synced: ok });
     if(window.fbq) fbq('trackCustom', 'SubmitProposal');
   }
 
@@ -1272,20 +1293,13 @@
       try { state.pitch.stageTime = now.toLocaleString('zh-TW', { hour12:false }); } catch(_){ state.pitch.stageTime = ''; }
       state.pitch.stageISO = now.toISOString();
     } else { state.pitch.stageTime = ''; state.pitch.stageISO = null; }
-    save();
+    state.pitch.needsSync = true; save(); renderPitch();
     var sb = document.getElementById('pitchStage'); if(sb){ sb.disabled = true; }
-    try {
-      var res = await fetch(SUPA_URL + '/rest/v1/lw_proposals', {
-        method: 'POST',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ code: state.attendee.code, name: state.attendee.name, content: ta.value, course: 'ai-line-member-workshop', wants_stage: willWant, wants_stage_at: willWant ? state.pitch.stageISO : null })
-      });
-      if(res.ok){ state.pitch.synced = true; save(); toast(willWant ? '🙋 已舉手！講師端會看到你想上台' : '已取消上台舉手'); }
-      else { state.pitch.wantsStage = !willWant; save(); toast('連線未成功（' + res.status + '），稍後再試'); }
-    } catch(e){ state.pitch.wantsStage = !willWant; save(); toast('目前連不上大會系統，稍後再舉手'); }
+    var ok = await syncPitch(9000);
     if(sb){ sb.disabled = false; }
-    renderPitch();
-    track('want_stage', { want: willWant });
+    toast(ok ? (willWant ? '🙋 已舉手！講師端會看到你想上台' : '已取消上台舉手')
+             : (willWant ? '🙋 已記錄想上台，背景自動重送中…' : '已取消（背景同步中）'));
+    track('want_stage', { want: willWant, synced: ok });
     if(window.fbq) fbq('trackCustom', 'WantStage');
   }
 
@@ -1323,6 +1337,9 @@
       document.getElementById('pitchSubmit').addEventListener('click', submitPitch);
       var sgb = document.getElementById('pitchStage'); if(sgb) sgb.addEventListener('click', toggleStage);
       renderPitch();
+      // 大會系統較忙時，背景每 20 秒自動重送未同步的提案
+      setInterval(function(){ if(state.pitch && state.pitch.needsSync && navigator.onLine !== false) syncPitch(9000); }, 20000);
+      window.addEventListener('online', function(){ if(state.pitch && state.pitch.needsSync) syncPitch(9000); });
     }
     renderHud();
     if(!state.attendee){ setTimeout(openReg, 700); }
